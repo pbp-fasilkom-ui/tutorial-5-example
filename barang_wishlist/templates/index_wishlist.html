@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Hello, world!</title>
+{% endblock meta %}
+
+{% block content %}
+  <h1>Wishlist</h1>
+  <form id="form" onsubmit="return false;">
+    {% csrf_token %}
+    <label>Nama Barang</label>
+    <input type="text" name="nama_barang"></input>
+    <label>Harga Barang</label>
+    <input type="number" name="harga_barang"></input>
+    <label>Deskripsi</label>
+    <input type="text" name="deskripsi"></input>
+    <button id="button" type="submit"  value="Submit"></button>
+  </form>
+
+  <table id="table"></table>
+
+<script>
+  async function getWishlist() {
+    return fetch("{% url 'get_wishlist_json' %}").then((res) => res.json())
+  }
+
+  async function refreshWishlist() {
+        document.getElementById("table").innerHTML = ""
+        const wishlist = await getWishlist()
+        let htmlString = `<tr>
+          <th>Nama Barang</th>
+          <th>Harga Barang</th>
+          <th>Deskripsi</th>
+        </tr>`
+        wishlist.forEach((item) => {
+          htmlString += `\n<tr>
+          <th>${item.fields.nama_barang}</th>
+          <th>${item.fields.harga_barang}</th>
+          <th>${item.fields.deskripsi}</th>
+        </tr>` 
+        })
+        
+        document.getElementById("table").innerHTML = htmlString
+  }
+
+  function addWishlist() {
+    fetch("{% url 'add_wishlist_item' %}", {
+          method: "POST",
+          body: new FormData(document.querySelector('#form'))
+      }).then(refreshWishlist)
+    return false
+  }
+
+  document.getElementById("button").onclick = addWishlist
+  refreshWishlist()
+</script>
+{% endblock content %}
